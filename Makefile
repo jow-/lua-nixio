@@ -1,22 +1,17 @@
-ifneq (,$(wildcard ../../build/config.mk))
-include ../../build/config.mk
-include ../../build/module.mk
-include ../../build/gccconfig.mk
-else
-include standalone.mk
-endif
-
+OS            = $(shell uname)
 AXTLS_VERSION = 1.2.1
 AXTLS_DIR     = axTLS
 AXTLS_FILE    = $(AXTLS_DIR)-$(AXTLS_VERSION).tar.gz
 #NIXIO_TLS    ?= openssl
 NIXIO_SHADOW ?= $(shell echo 'int main(void){ return !getspnam("root"); }' | $(CC) $(CFLAGS) -include shadow.h -xc -o/dev/null - 2>/dev/null && echo yes)
 NIXIO_SO      = nixio.so
-NIXIO_LDFLAGS =
+NIXIO_LDFLAGS = -llua -lm -ldl
+CFLAGS       += -std=gnu99
 
 ifeq (,$(findstring Darwin,$(OS)))
-	NIXIO_LDFLAGS += -lcrypt
+	NIXIO_LDFLAGS += -lcrypt -shared
 else
+	NIXIO_LDFLAGS += -bundle -undefined dynamic_lookup
 	EXTRA_CFLAGS += -D__DARWIN__
 endif
 
@@ -71,28 +66,28 @@ endif
 
 
 %.o: %.c
-	$(COMPILE) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) -c -o $@ $< 
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) -c -o $@ $< 
 
 ifneq ($(NIXIO_TLS),)
 src/tls-crypto.o: $(TLS_DEPENDS) src/tls-crypto.c
-	$(COMPILE) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/tls-crypto.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/tls-crypto.c
 
 src/tls-context.o: $(TLS_DEPENDS) src/tls-context.c
-	$(COMPILE) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/tls-context.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/tls-context.c
 	
 src/tls-socket.o: $(TLS_DEPENDS) src/tls-socket.c
-	$(COMPILE) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/tls-socket.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/tls-socket.c
 	
 src/axtls-compat.o: src/libaxtls.a src/axtls-compat.c
-	$(COMPILE) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/axtls-compat.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(NIXIO_CFLAGS) $(LUA_CFLAGS) $(FPIC) $(TLS_CFLAGS) -c -o $@ src/axtls-compat.c
 	mkdir -p dist
 	cp -pR axtls-root/* dist/
 endif	
 
 compile: $(NIXIO_OBJ)
-	$(LINK) $(SHLIB_FLAGS) -o src/$(NIXIO_SO) $(NIXIO_OBJ) $(NIXIO_LDFLAGS) $(NIXIO_LDFLAGS_POST)
-	mkdir -p dist$(LUA_LIBRARYDIR)
-	cp src/$(NIXIO_SO) dist$(LUA_LIBRARYDIR)/$(NIXIO_SO)
+	$(CC) $(LDFLAGS) $(SHLIB_FLAGS) -o src/$(NIXIO_SO) $(NIXIO_OBJ) $(NIXIO_LDFLAGS) $(NIXIO_LDFLAGS_POST)
+	mkdir -p dist/usr/lib/lua
+	cp src/$(NIXIO_SO) dist/usr/lib/lua/$(NIXIO_SO)
 
 $(AXTLS_DIR)/.prepared:
 	#rm -rf $(AXTLS_DIR)
@@ -116,10 +111,10 @@ src/libaxtls.a: $(AXTLS_DIR)/.prepared
 	#
 	#**************************************************************************
 
-clean: luaclean
+clean:
 	rm -f src/*.o src/*.so src/*.a src/*.dll
 	rm -f $(AXTLS_DIR)/.prepared
 
-install: build
-	cp -pR dist$(LUA_MODULEDIR)/* $(LUA_MODULEDIR)
-	cp -pR dist$(LUA_LIBRARYDIR)/* $(LUA_LIBRARYDIR)
+install: compile
+	mkdir -p $(DESTDIR)
+	cp -pR dist/* $(DESTDIR)/
