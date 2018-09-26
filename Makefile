@@ -34,8 +34,8 @@ ifeq ($(NIXIO_TLS),openssl)
 	NIXIO_TLSV1_2 ?= yes
 endif
 
-ifeq ($(NIXIO_TLS),cyassl)
-	NIXIO_LDFLAGS += -lcyassl
+ifeq ($(NIXIO_TLS),wolfssl)
+	NIXIO_LDFLAGS += -lwolfssl
 	NIXIO_TLSV1   ?= no
 	NIXIO_TLSV1_1 ?= yes
 	NIXIO_TLSV1_2 ?= yes

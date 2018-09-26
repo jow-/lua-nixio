@@ -102,7 +102,7 @@ static int nixio_tls_ctx(lua_State * L) {
 		return luaL_error(L, "unable to create TLS context");
 	}
 
-#ifdef WITH_CYASSL
+#ifdef WITH_WOLFSSL
 	SSL_CTX_set_verify(*ctx, SSL_VERIFY_NONE, NULL);
 #endif
 
@@ -269,8 +269,8 @@ void nixio_open_tls_context(lua_State *L) {
 
 #if defined (WITH_AXTLS)
     lua_pushliteral(L, "axtls");
-#elif defined (WITH_CYASSL)
-    lua_pushliteral(L, "cyassl");
+#elif defined (WITH_WOLFSSL)
+    lua_pushliteral(L, "wolfssl");
 #else
     lua_pushliteral(L, "openssl");
 #endif
