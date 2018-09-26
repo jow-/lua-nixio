@@ -63,9 +63,13 @@ typedef SHA1_CTX SHA_CTX;
 void *SSLv23_server_method(void);
 void *SSLv3_server_method(void);
 void *TLSv1_server_method(void);
+void *TLSv1_1_server_method(void);
+void *TLSv1_2_server_method(void);
 void *SSLv23_client_method(void);
 void *SSLv3_client_method(void);
 void *TLSv1_client_method(void);
+void *TLSv1_1_client_method(void);
+void *TLSv1_2_client_method(void);
 void *SSLv23_method(void);
 void *TLSv1_method(void);
 

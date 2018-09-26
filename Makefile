@@ -22,23 +22,32 @@ ifeq ($(NIXIO_TLS),axtls)
 	TLS_DEPENDS = src/axtls-compat.o
 	NIXIO_OBJ += src/axtls-compat.o
 	NIXIO_LDFLAGS += -Wl,-Bstatic -laxtls -Wl,-Bdynamic
+	NIXIO_TLSV1   ?= no
+	NIXIO_TLSV1_1 ?= no
+	NIXIO_TLSV1_2 ?= no
 endif
 
 ifeq ($(NIXIO_TLS),openssl)
 	NIXIO_LDFLAGS += -lssl -lcrypto
+	NIXIO_TLSV1   ?= yes
+	NIXIO_TLSV1_1 ?= yes
+	NIXIO_TLSV1_2 ?= yes
 endif
 
 ifeq ($(NIXIO_TLS),cyassl)
 	NIXIO_LDFLAGS += -lcyassl
+	NIXIO_TLSV1   ?= no
+	NIXIO_TLSV1_1 ?= yes
+	NIXIO_TLSV1_2 ?= yes
 endif
 
 ifeq ($(NIXIO_TLS),)
 	NIXIO_CFLAGS += -DNO_TLS
 endif
 
-ifneq ($(NIXIO_SHADOW),yes)
-	NIXIO_CFLAGS += -DNO_SHADOW
-endif
+NIXIO_CFLAGS += \
+  $(foreach flag,SHADOW TLSV1 TLSV1_1 TLSV1_2, \
+    $(if $(filter yes,$(NIXIO_$(flag))),,-DNO_$(flag)))
 
 
 ifeq ($(OS),SunOS)

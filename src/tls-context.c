@@ -42,6 +42,9 @@ static int nixio__tls_pstatus(lua_State *L, int code) {
 
 static int nixio_tls_ctx(lua_State * L) {
 	const char *method = luaL_optlstring(L, 1, "client", NULL);
+	const char *version = luaL_optlstring(L, 2, "auto", NULL);
+	void *vmod;
+	int client;
 
 	luaL_getmetatable(L, NIXIO_TLS_CTX_META);
 	SSL_CTX **ctx = lua_newuserdata(L, sizeof(SSL_CTX *));
@@ -54,12 +57,46 @@ static int nixio_tls_ctx(lua_State * L) {
 	lua_setmetatable(L, -2);
 
 	if (!strcmp(method, "client")) {
-		*ctx = SSL_CTX_new(SSLv23_client_method());
+		client = 1;
 	} else if (!strcmp(method, "server")) {
-		*ctx = SSL_CTX_new(SSLv23_server_method());
+		client = 0;
 	} else {
 		return luaL_argerror(L, 1, "supported values: client, server");
 	}
+
+	if (!strcasecmp(version, "auto")) {
+		vmod = client ? SSLv23_client_method() : SSLv23_server_method();
+	}
+#ifndef NO_TLSV1_2
+	else if (!strcasecmp(version, "TLSv1.2")) {
+		vmod = client ? TLSv1_2_client_method() : TLSv1_2_server_method();
+	}
+#endif
+#ifndef NO_TLSV1_1
+	else if (!strcasecmp(version, "TLSv1.1")) {
+		vmod = client ? TLSv1_1_client_method() : TLSv1_1_server_method();
+	}
+#endif
+#ifndef NO_TLSV1
+	else if (!strcasecmp(version, "TLSv1.0") || !strcasecmp(version, "TLSv1")) {
+		vmod = client ? TLSv1_client_method() : TLSv1_server_method();
+	}
+#endif
+	else {
+		return luaL_argerror(L, 2, "supported values: auto"
+#ifndef NO_TLSV1_2
+		                           ", TLSv1.2"
+#endif
+#ifndef NO_TLSV1_1
+		                           ", TLSv1.1"
+#endif
+#ifndef NO_TLSV1
+		                           ", TLSv1.0, TLSv1"
+#endif
+		                           );
+	}
+
+	*ctx = SSL_CTX_new(vmod);
 
 	if (!(*ctx)) {
 		return luaL_error(L, "unable to create TLS context");
