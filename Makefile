@@ -30,9 +30,6 @@ endif
 
 ifeq ($(NIXIO_TLS),cyassl)
 	NIXIO_LDFLAGS += -lcyassl
-	TLS_DEPENDS = src/cyassl-compat.o
-	TLS_CFLAGS = -include src/cyassl-compat.h
-	NIXIO_OBJ += src/cyassl-compat.o
 endif
 
 ifeq ($(NIXIO_TLS),)
