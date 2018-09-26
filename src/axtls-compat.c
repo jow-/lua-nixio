@@ -70,6 +70,7 @@ SSL * SSL_new(SSL_CTX *ssl_ctx)
     SSL *ssl;
 
     ssl = ssl_new(ssl_ctx, -1);        /* fd is set later */
+    ssl->version = SSL_PROTOCOL_VERSION_MAX;
 
     return ssl;
 }
