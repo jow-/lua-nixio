@@ -36,12 +36,12 @@
  * port is.
  */
 
-#include "config.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include "ssl.h"
+
+#include <axTLS/config.h>
+#include <axTLS/ssl.h>
 
 static char *key_password = NULL;
 

@@ -37,7 +37,6 @@
  */
 
 #include "nixio.h"
-#include "config.h"
 
 #define WITH_AXTLS						1
 #define WITHOUT_OPENSSL					1
@@ -55,7 +54,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include "ssl.h"
+
+#include <axTLS/config.h>
+#include <axTLS/ssl.h>
 
 typedef SHA1_CTX SHA_CTX;
 
