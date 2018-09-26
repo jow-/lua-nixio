@@ -464,4 +464,5 @@ module "nixio"
 -- @class function
 -- @name nixio.tls
 -- @param mode TLS-Mode ["client", "server"]
+-- @param version TLS-Version ["auto", "TLSv1.2", "TLSv1.1", "TLSv1.0"]
 -- @return TLSContext Object
